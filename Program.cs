@@ -10,7 +10,7 @@ namespace NganHang
     {
         static void Main(string[] args)
         {
-            Console.writeline
+            Console.WriteLine()
         }
     }
 }
