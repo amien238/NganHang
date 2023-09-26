@@ -1,0 +1,118 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+
+namespace BankAccountWithInput
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            List<BankAccount> accounts = new List<BankAccount>();
+
+            // Tạo và thêm các tài khoản ngân hàng vào danh sách
+            accounts.Add(new BankAccount("John Doe", 1000.00));
+            accounts.Add(new BankAccount("Jane Smith", 1500.00));
+            accounts.Add(new BankAccount("Bob Johnson", 2000.00));
+
+            // Tạo các luồng để thực hiện các giao dịch
+            Thread[] threads = new Thread[3];
+
+            for (int i = 0; i < 3; i++)
+            {
+                int accountIndex = i; // Lưu chỉ số tài khoản cho mỗi luồng
+
+                threads[i] = new Thread(() =>
+                {
+                    BankAccount account = accounts[accountIndex];
+                    for (int j = 0; j < 1000; j++)
+                    {
+                        // Gọi phương thức Rút và Gửi tiền trong Critical Section
+                        lock (account)
+                        {
+                            double withdrawAmount = GetAmountFromUser("Nhập số tiền muốn rút: ");
+                            double depositAmount = GetAmountFromUser("Nhập số tiền muốn gửi: ");
+
+                            account.Withdraw(withdrawAmount);
+                            account.Deposit(depositAmount);
+                        }
+                    }
+                });
+            }
+
+            // Khởi động các luồng
+            foreach (Thread thread in threads)
+            {
+                thread.Start();
+            }
+
+            // Chờ tất cả các luồng kết thúc
+            foreach (Thread thread in threads)
+            {
+                thread.Join();
+            }
+
+            // Hiển thị số dư cuối cùng của các tài khoản
+            foreach (BankAccount account in accounts)
+            {
+                Console.WriteLine($"{account.GetAccountHolderName()}'s balance: {account.GetBalance():C}");
+            }
+        }
+
+        static double GetAmountFromUser(string prompt)
+        {
+            double amount;
+            while (true)
+            {
+                Console.Write(prompt);
+                if (double.TryParse(Console.ReadLine(), out amount) && amount >= 0)
+                {
+                    return amount;
+                }
+                else
+                {
+                    Console.WriteLine("Số tiền không hợp lệ. Vui lòng nhập lại.");
+                }
+            }
+        }
+    }
+
+    class BankAccount
+    {
+        private string accountHolder;
+        private double balance;
+
+        public BankAccount(string accountHolder, double initialBalance)
+        {
+            this.accountHolder = accountHolder;
+            this.balance = initialBalance;
+        }
+
+        public string GetAccountHolderName()
+        {
+            return accountHolder;
+        }
+
+        public double GetBalance()
+        {
+            return balance;
+        }
+
+        public void Withdraw(double amount)
+        {
+            if (amount <= balance)
+            {
+                balance -= amount;
+            }
+            else
+            {
+                Console.WriteLine("Không đủ tiền trong tài khoản để rút.");
+            }
+        }
+
+        public void Deposit(double amount)
+        {
+            balance += amount;
+        }
+    }
+}
