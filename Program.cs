@@ -11,6 +11,7 @@ namespace NganHang
         static void Main(string[] args)
         {
             Console.WriteLine("hello");
-            hadfge
+            Console.WriteLine();
+        }
     }
 }
